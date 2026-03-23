@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Appointment — UHC Clinic</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<%- include('partials/nav', { user }) %>
+<div class="container" style="max-width:720px">
+
+  <h4 class="mb-3">
+    <i class="bi bi-calendar2-check me-2 text-warning"></i>Edit Appointment
+    <small class="text-muted fs-6 ms-2">#<%= appt.appointment_id %></small>
+  </h4>
+
+  <% if (errors && errors.length > 0) { %>
+  <div class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <ul class="mb-0 ps-3">
+      <% errors.forEach(e => { %><li><%= e.msg %></li><% }) %>
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <% } %>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST" action="/appointments/<%= appt.appointment_id %>/edit" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <!-- Patient -->
+        <div class="mb-3">
+          <label for="patient_id" class="form-label fw-semibold">
+            Patient <span class="text-danger">*</span>
+          </label>
+          <select name="patient_id" id="patient_id" class="form-select" required>
+            <option value="">— Select patient —</option>
+            <% patients.forEach(p => { %>
+            <option value="<%= p.patient_id %>"
+              <%= String(appt.patient_id) === String(p.patient_id) ? 'selected' : '' %>>
+              <%= p.full_name %> (#<%= p.patient_id %>)
+            </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Appointment Type -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            Appointment Type <span class="text-danger">*</span>
+          </label>
+          <div class="d-flex gap-3 flex-wrap">
+            <% const typeColors = { doctor:'primary', laboratory:'success', radiology:'secondary' }; %>
+            <% APPOINTMENT_TYPES.forEach(t => { %>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="appointment_type"
+                     id="type_<%= t %>" value="<%= t %>"
+                     <%= appt.appointment_type === t ? 'checked' : '' %> required>
+              <label class="form-check-label badge bg-<%= typeColors[t] || 'secondary' %> p-2"
+                     for="type_<%= t %>">
+                <%= t.charAt(0).toUpperCase() + t.slice(1) %>
+              </label>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="appointment_date" class="form-label fw-semibold">
+              Date <span class="text-danger">*</span>
+            </label>
+            <input type="date" name="appointment_date" id="appointment_date"
+                   class="form-control"
+                   value="<%= appt.appointment_date %>" required>
+          </div>
+          <div class="col-md-6">
+            <label for="appointment_time" class="form-label fw-semibold">
+              Time <span class="text-danger">*</span>
+            </label>
+            <input type="time" name="appointment_time" id="appointment_time"
+                   class="form-control"
+                   value="<%= appt.appointment_time %>" required>
+          </div>
+        </div>
+
+        <!-- Duration -->
+        <div class="mb-3">
+          <label for="duration_minutes" class="form-label fw-semibold">
+            Duration (minutes) <span class="text-danger">*</span>
+          </label>
+          <select name="duration_minutes" id="duration_minutes" class="form-select">
+            <% DURATION_OPTIONS.forEach(d => { %>
+            <option value="<%= d %>"
+              <%= String(appt.duration_minutes) === String(d) ? 'selected' : '' %>>
+              <%= d %> min
+            </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Provider -->
+        <div class="mb-3">
+          <label for="provider_id" class="form-label fw-semibold">
+            Assigned Provider
+            <small class="text-muted fw-normal">(optional)</small>
+          </label>
+          <select name="provider_id" id="provider_id" class="form-select">
+            <option value="">— Unassigned —</option>
+            <% providers.forEach(p => { %>
+            <option value="<%= p.user_id %>"
+              <%= String(appt.provider_id) === String(p.user_id) ? 'selected' : '' %>>
+              <%= p.username %>
+            </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-3">
+          <label for="status" class="form-label fw-semibold">
+            Status <span class="text-danger">*</span>
+          </label>
+          <select name="status" id="status" class="form-select">
+            <% APPOINTMENT_STATUSES.forEach(s => { %>
+            <option value="<%= s %>" <%= appt.status === s ? 'selected' : '' %>>
+              <%= s.charAt(0).toUpperCase() + s.slice(1).replace('_', ' ') %>
+            </option>
+            <% }) %>
+          </select>
+          <div class="mt-1">
+            Current:
+            <span class="badge bg-<%= STATUS_BADGE[appt.status] || 'secondary' %>">
+              <%= appt.status.replace('_', ' ') %>
+            </span>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+          <label for="notes" class="form-label fw-semibold">Notes</label>
+          <textarea name="notes" id="notes" class="form-control" rows="3"
+                    maxlength="1000"><%= appt.notes || '' %></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-warning">
+            <i class="bi bi-save me-1"></i>Save Changes
+          </button>
+          <a href="/appointments" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
