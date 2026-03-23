@@ -222,7 +222,7 @@ router.get('/mfa-setup', async (req, res) => {
 
   try {
     const secret     = authenticator.generateSecret();
-    const otpAuthUrl = authenticator.keyuri(req.session.user.username, 'UHC Clinic – Student 2', secret);
+    const otpAuthUrl = authenticator.keyuri(req.session.user.username, 'UHC Clinic', secret);
     const qrImage    = await QRCode.toDataURL(otpAuthUrl);
 
     req.session.mfaSetupSecret = secret;
@@ -245,7 +245,7 @@ router.post('/mfa-setup', async (req, res) => {
 
   if (!isValid) {
     try {
-      const otpAuthUrl = authenticator.keyuri(req.session.user.username, 'UHC Clinic – Student 2', secret);
+      const otpAuthUrl = authenticator.keyuri(req.session.user.username, 'UHC Clinic', secret);
       const qrImage    = await QRCode.toDataURL(otpAuthUrl);
       return res.render('mfa-setup', {
         qrImage, secret,

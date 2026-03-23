@@ -122,10 +122,12 @@ app.use('/',           generalLimiter);
 const authRoutes         = require('./routes/auth');
 const appointmentRoutes  = require('./routes/appointments');
 const barcodeRoutes      = require('./routes/barcode');
+const patientRoutes      = require('./routes/patients');
 
 app.use('/', authRoutes);
 app.use('/', appointmentRoutes);
 app.use('/', barcodeRoutes);
+app.use('/', patientRoutes);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard
